@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import random
 import tkinter as tk
+
 from tkinter import ttk, font
 
 from vocabulary_quiz_app.quiz_logic import Word, check_answer, draw_word
