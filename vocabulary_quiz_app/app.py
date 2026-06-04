@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 import tkinter as tk
 
-from tkinter import ttk, font
+from tkinter import ttk, font, messagebox
 
 from vocabulary_quiz_app.quiz_logic import Word, check_answer, draw_word
 
@@ -83,14 +83,18 @@ class VocabularyQuizApp:
         self.next_word()
 
     def refresh_word_list(self) -> None:
+        """현재 단어 목록을 화면의 리스트박스에 다시 표시한다."""
         self.word_listbox.delete(0, tk.END)
 
+        # self.words는 퀴즈와 단어 관리에서 함께 사용하는 전체 단어 목록이다.
         for word in self.words:
             self.word_listbox.insert(tk.END, f"{word.term} - {word.meaning}")
 
     def select_word(self, event=None) -> None:
+        """리스트박스에서 선택한 단어를 입력창에 표시한다."""
         selected = self.word_listbox.curselection()
 
+        # 선택된 항목이 없으면 입력창을 바꾸지 않는다.
         if not selected:
             return
 
@@ -104,9 +108,11 @@ class VocabularyQuizApp:
         self.meaning_entry.insert(0, word.meaning)
 
     def add_word(self) -> None:
+        """입력한 영어 단어와 뜻을 단어 목록에 추가한다."""
         term = self.term_entry.get().strip()
         meaning = self.meaning_entry.get().strip()
 
+        # 영어 단어 또는 뜻이 비어 있으면 잘못된 데이터이므로 추가하지 않는다.
         if not term or not meaning:
             messagebox.showwarning("입력 오류", "영어 단어와 뜻을 모두 입력하세요.")
             return
@@ -120,8 +126,10 @@ class VocabularyQuizApp:
         self.feedback_var.set(f"{term} 추가 완료!")
 
     def update_word(self) -> None:
+        """선택한 단어를 입력창의 내용으로 수정한다."""
         selected = self.word_listbox.curselection()
 
+        # 수정할 단어가 선택되지 않았으면 수정할 수 없다.
         if not selected:
             messagebox.showwarning("선택 오류", "수정할 단어를 목록에서 선택하세요.")
             return
@@ -129,27 +137,36 @@ class VocabularyQuizApp:
         term = self.term_entry.get().strip()
         meaning = self.meaning_entry.get().strip()
 
+        # 수정할 값이 비어 있으면 잘못된 데이터이므로 저장하지 않는다.
         if not term or not meaning:
             messagebox.showwarning("입력 오류", "영어 단어와 뜻을 모두 입력하세요.")
             return
 
         index = selected[0]
-        self.words[index] = Word(term=term, meaning=meaning)
+        old_word = self.words[index]
+        new_word = Word(term=term, meaning=meaning)
 
-        if self.current is not None and self.current.term == self.words[index].term:
-            self.current = self.words[index]
-            self.word_var.set(term)
+        # 리스트에서 선택한 위치의 단어를 새 단어 객체로 교체한다.
+        self.words[index] = new_word
+
+        # 현재 퀴즈에 표시 중인 단어가 수정된 단어라면 화면도 함께 갱신한다.
+        if self.current is not None and self.current == old_word:
+            self.current = new_word
+            self.word_var.set(new_word.term)
 
         self.refresh_word_list()
         self.feedback_var.set(f"{term} 수정 완료!")
 
     def delete_word(self) -> None:
+        """선택한 단어를 단어 목록에서 삭제한다."""
         selected = self.word_listbox.curselection()
 
+        # 삭제할 단어가 선택되지 않았으면 삭제할 수 없다.
         if not selected:
             messagebox.showwarning("선택 오류", "삭제할 단어를 목록에서 선택하세요.")
             return
 
+        # 퀴즈가 계속 동작하려면 최소 1개의 단어는 남아 있어야 한다.
         if len(self.words) <= 1:
             messagebox.showwarning("삭제 불가", "단어는 최소 1개 이상 있어야 합니다.")
             return
@@ -162,6 +179,8 @@ class VocabularyQuizApp:
         self.meaning_entry.delete(0, tk.END)
 
         self.feedback_var.set(f"{deleted.term} 삭제 완료!")
+
+        # 현재 표시 중인 단어가 삭제되었을 수 있으므로 새 단어를 다시 뽑는다.
         self.next_word()
 
     def next_word(self) -> None:
