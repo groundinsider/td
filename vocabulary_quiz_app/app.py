@@ -2,7 +2,7 @@ import random
 import tkinter as tk
 from tkinter import ttk, font
 
-from vocabulary_quiz_app.quiz_logic import draw_word, check_answer, Word
+from vocabulary_quiz_app.quiz_logic import Word, check_answer, draw_word
 
 
 class VocabularyQuizApp:
