@@ -2,7 +2,7 @@ import random
 import tkinter as tk
 from tkinter import ttk, font
 
-from quiz_logic import draw_word, check_answer, Word
+from vocabulary_quiz_app.quiz_logic import draw_word, check_answer, Word
 
 
 class VocabularyQuizApp:
@@ -12,14 +12,19 @@ class VocabularyQuizApp:
 
         self.current = None
         self.checked = False
+
         self.score = 0
         self.total = 0
+
+        # 단어 이동 기록
+        self.history = []
+        self.current_index = -1
 
         default_font = font.nametofont("TkDefaultFont")
         default_font.configure(family="NanumGothic", size=12)
 
         root.title("Vocabulary Quiz")
-        root.geometry("420x280")
+        root.geometry("500x300")
         root.resizable(False, False)
 
         self.word_var = tk.StringVar(value="단어를 불러오는 중...")
@@ -43,6 +48,13 @@ class VocabularyQuizApp:
         button_frame = ttk.Frame(root)
         button_frame.pack(pady=6)
 
+        self.prev_button = ttk.Button(
+            button_frame,
+            text="이전",
+            command=self.prev_word
+        )
+        self.prev_button.pack(side=tk.LEFT, padx=6)
+
         self.check_button = ttk.Button(
             button_frame,
             text="채점",
@@ -50,11 +62,12 @@ class VocabularyQuizApp:
         )
         self.check_button.pack(side=tk.LEFT, padx=6)
 
-        ttk.Button(
+        self.next_button = ttk.Button(
             button_frame,
             text="다음",
             command=self.next_word
-        ).pack(side=tk.LEFT, padx=6)
+        )
+        self.next_button.pack(side=tk.LEFT, padx=6)
 
         ttk.Label(
             root,
@@ -68,10 +81,12 @@ class VocabularyQuizApp:
 
         self.next_word()
 
-    def next_word(self):
-        self.current = draw_word(self.words, self.rng)
+    def show_current_word(self):
+        if self.current is None:
+            return
 
         self.word_var.set(self.current.term)
+
         self.answer_entry.delete(0, tk.END)
 
         self.feedback_var.set("")
@@ -80,6 +95,27 @@ class VocabularyQuizApp:
         self.check_button.state(["!disabled"])
         self.answer_entry.focus()
 
+    def prev_word(self):
+        if self.current_index > 0:
+            self.current_index -= 1
+            self.current = self.history[self.current_index]
+            self.show_current_word()
+
+    def next_word(self):
+        # 이미 방문했던 다음 단어가 있으면 이동
+        if self.current_index < len(self.history) - 1:
+            self.current_index += 1
+            self.current = self.history[self.current_index]
+
+        # 없으면 새 단어 생성
+        else:
+            self.current = draw_word(self.words, self.rng)
+
+            self.history.append(self.current)
+            self.current_index += 1
+
+        self.show_current_word()
+
     def check_current(self):
         if self.current is None or self.checked:
             return
@@ -87,9 +123,9 @@ class VocabularyQuizApp:
         self.checked = True
         self.total += 1
 
-        user_answer = self.answer_entry.get()
+        user_input = self.answer_entry.get()
 
-        if check_answer(self.current, user_answer):
+        if check_answer(self.current, user_input):
             self.score += 1
             self.feedback_var.set("정답입니다!")
         else:
