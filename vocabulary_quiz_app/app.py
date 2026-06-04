@@ -103,7 +103,7 @@ class VocabularyQuizApp:
             self.current_index -= 1
             self.current = self.history[self.current_index]
             self.show_current_word()
-
+ 
     def next_word(self):
         # 이미 방문했던 다음 단어가 있으면 이동
         if self.current_index < len(self.history) - 1:
