@@ -19,8 +19,9 @@ class VocabularyQuizApp:
         self.score = 0
         self.total = 0
 
-        # 단어 이동 기록
+        # 단어 이동 기록: 사용자가 본 단어들을 순서대로 저장한다.
         self.history = []
+        # 현재 history에서 몇 번째 단어를 보고 있는지 나타낸다.
         self.current_index = -1
 
         default_font = font.nametofont("TkDefaultFont")
@@ -85,6 +86,7 @@ class VocabularyQuizApp:
         self.next_word()
 
     def show_current_word(self):
+        """현재 선택된 단어를 화면에 표시하고 입력 상태를 초기화한다."""
         if self.current is None:
             return
 
@@ -99,18 +101,23 @@ class VocabularyQuizApp:
         self.answer_entry.focus()
 
     def prev_word(self):
+        """history에 저장된 이전 단어로 이동한다."""
         if self.current_index > 0:
             self.current_index -= 1
             self.current = self.history[self.current_index]
             self.show_current_word()
- 
+        # 첫 번째 단어보다 앞에는 이동할 수 없으므로 current_index가 0보다 클 때만 이동한다.
+
     def next_word(self):
-        # 이미 방문했던 다음 단어가 있으면 이동
+        """다음 단어로 이동하거나, 새 단어를 뽑아서 history에 추가한다."""
+        
         if self.current_index < len(self.history) - 1:
             self.current_index += 1
             self.current = self.history[self.current_index]
+        # 이미 방문했던 다음 단어가 있으면 새로 뽑지 않고 history 안에서 앞으로 이동한다.
 
-        # 없으면 새 단어 생성
+
+        # 방문했던 다음 단어가 없으면 새 단어를 뽑아서 history 끝에 저장한다.
         else:
             self.current = draw_word(self.words, self.rng)
 
